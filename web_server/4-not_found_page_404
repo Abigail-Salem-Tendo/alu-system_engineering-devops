@@ -4,31 +4,17 @@
 NGINX_CONF="/etc/nginx/sites-available/default"
 CUSTOM_404_PAGE="/var/www/html/404.html"
 # 1.Update package lists and install
-sudo apt-get update -y
-if ! command -v nginx &> /dev/null; then
-    sudo apt-get install -y nginx
-fi
+apt-get update -y
+apt-get install -y nginx
 
-# 2. Create a 404 page
-echo "Ceci n'est pas une page" | sudo tee $CUSTOM_404_PAGE > /dev/null
+# Create the custom 404 page
+echo "Ceci n'est pas une page" > "$CUSTOM_404_PAGE"
 
-# 3. Make sure the original Nginx config is backed up
-if [ ! -f "${NGINX_CONF}.bak" ]; then
-    sudo cp "$NGINX_CONF" "${NGINX_CONF}.bak"
-fi
-
-# add the configuration inside the server block
+# Add the error_page configuration if not already there
 if ! grep -q "error_page 404" "$NGINX_CONF"; then
-    sudo sed -i "/server_name _;/a \\
-    error_page 404 /404.html;\\
-    location = /404.html {\\
-        root /var/www/html;\\
-        internal;\\
-    }" "$NGINX_CONF"
+	    sed -i '/server_name _;/a \\terror_page 404 /404.html;\n\tlocation = /404.html {\n\t\troot /var/www;\n\t\tinternal;\n\t}' "$NGINX_CONF"
 fi
 
-# Test the nginx configuration
-sudo nginx -t
-
-# restart nginx
-sudo service nginx restart
+# Test and restart nginx
+nginx -t
+service nginx restart

@@ -22,8 +22,5 @@ nginx -t
 # Restart nginx safely
 service nginx restart
 
-# Wait to ensure reload is complete
-sleep 3
-
-# Optional sanity check
-curl -sI 127.0.0.1/redirect_me | grep "301"
+# Wait to ensure reload
+sleep 2
