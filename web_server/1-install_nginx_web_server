@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# script: 1-install_nginx_web_server
+
+# start by updating package list and install nginx
+apt-get update -y
+apt-get install -y nginx
+
+# Ensure the server listens on port 80
+cat > /var/www/html/index.html <<EOF
+Holberton School for the win!
+EOF
+
+# restart the NGINX using service
+service nginx restart
+
+update-rc.d nginx defaults
+sleep 2
