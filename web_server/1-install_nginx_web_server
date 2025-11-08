@@ -7,7 +7,7 @@ apt-get install -y nginx
 
 # Ensure the server listens on port 80
 cat > /var/www/html/index.html <<EOF
-Holberton School for the win!
+Holberton School
 EOF
 
 # restart the NGINX using service
