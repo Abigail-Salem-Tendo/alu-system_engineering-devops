@@ -5,13 +5,13 @@
 apt-get update -y
 apt-get install -y nginx
 
-# Ensure the server listens on port 80
-cat > /var/www/html/index.html <<EOF
-Holberton School
-EOF
+# Replcing the default nginx page with the required text
+echo "Holberton School" > /var/www/html/index.nginx-debian.html
 
 # restart the NGINX using service
 service nginx restart
 
+# ensuring Nginx starts on boot
 update-rc.d nginx defaults
+
 sleep 2
