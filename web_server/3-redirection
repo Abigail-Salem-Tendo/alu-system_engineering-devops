@@ -13,7 +13,11 @@ NGINX_CONF="/etc/nginx/sites-available/default"
 
 # add the redirect block inside the defaut sever configuration
 if ! grep -q "redirect_me" "$NGINX_CONF"; then
-    sed -i '/listen 80 default_server;/a \\tlocation /redirect_me {\n\t\treturn 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;\n\t}' "$NGINX_CONF" 	
+cat << 'EOF' >> "$NGINX_CONF" 
+location /redirect_me {
+return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
+}
+EOF	
 fi
 
 # Verify nginx config
