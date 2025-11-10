@@ -13,6 +13,9 @@ NGINX_CONF="/etc/nginx/sites-available/default"
 REDIRECT_URL="https://www.youtube.com/watch?v=QH2-TGUlwu4"
 TEMP_CONF="/tmp/nginx_redirect_conf"
 
+# delete the previously added /redirect_me bloacks
+sudo sed -i '/location \/redirect_me {/,/}/d' $NGINX_CONF
+
 #Create a multiline config block in a temporary file
 cat <<- EOF > $TEMP_CONF
         location /redirect_me {
@@ -33,7 +36,7 @@ rm $TEMP_CONF
 
 # Start Nginx if it was not running
 if ! pgrep -x "nginx" > /dev/null; then
-	    /usr/sbin/nginx
+	/usr/sbin/nginx
 fi
 
 sleep 2

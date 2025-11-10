@@ -22,6 +22,9 @@ echo "$CUSTOM_404_STRING" | sudo tee "$ERROR_PAGE_FILE" > /dev/null
 ERROR_PAGE_DIRECTIVE="error_page 404 /404.html;"
 sudo sed -i "/server_name _;/i$ERROR_PAGE_DIRECTIVE" $NGINX_CONF
 
+# removing unnecessary files that could cause conflict
+sudo sed -i '/location \/redirect_me {/,/}/d' $NGINX_CONF
+sudo sed -i '/location = \/404.html {/,/}/d' $NGINX_CONF
 # THE Redirection
 TEMP_CONF="/tmp/nginx_redirect_conf"
 
@@ -29,6 +32,9 @@ TEMP_CONF="/tmp/nginx_redirect_conf"
 cat <<- EOF > $TEMP_CONF
 	location /redirect_me {
 		return 301 $REDIRECT_URL;
+	}
+	location = /404.html {
+		internal;
 	}
 EOF
 
