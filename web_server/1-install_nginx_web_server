@@ -6,12 +6,17 @@ apt-get update -y
 apt-get install -y nginx
 
 # Replcing the default nginx page with the required text
-echo "Holberton School" > /var/www/html/index.html
+# Create the custom HTML content
+echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
 
-# restart the NGINX using service
-service nginx restart
+# Restart Nginx using the service command (as systemctl is forbidden)
+# This ensures Nginx is started and serves the new file
+/usr/sbin/nginx -t
+/usr/sbin/nginx -s reload
 
-# ensuring Nginx starts on boot
-update-rc.d nginx defaults
+#Check if the process is running
+if ! pgrep -x "nginx" > /dev/null; then
+    /usr/sbin/nginx
+fi
 
 sleep 2

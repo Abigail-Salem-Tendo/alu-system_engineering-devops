@@ -1,21 +1,51 @@
 #!/usr/bin/env bash
 # Custom 404 page for Nginx
 
+# Configuration variables
 NGINX_CONF="/etc/nginx/sites-available/default"
-CUSTOM_404_PAGE="/var/www/html/404.html"
-# 1.Update package lists and install
+REDIRECT_URL="https://www.youtube.com/watch?v=QH2-TGUlwu4"
+ERROR_PAGE_FILE="/var/www/html/404.html"
+CUSTOM_404_STRING="Ceci n'est pas une page"
+
+#Install and setup the root page
 apt-get update -y
 apt-get install -y nginx
 
-# Create the custom 404 page
-echo "Ceci n'est pas une page" > "$CUSTOM_404_PAGE"
+# Create the custom index.html
+echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
 
-# Add the error_page configuration if not already there
-if ! grep -q "error_page 404" "$NGINX_CONF"; then
-	    sed -i '/listen 80 default_server;/a \\terror_page 404 /404.html;\n\tlocation = /404.html {\n\t\troot /var/www/html;\n\t}' "$NGINX_CONF"
+# add the custom 404 page
+#create the custom 404 page
+echo "$CUSTOM_404_STRING" | sudo tee "$ERROR_PAGE_FILE" > /dev/null
+
+# Insert the error page directive into the Nginx config
+ERROR_PAGE_DIRECTIVE="error_page 404 /404.html;"
+sudo sed -i "/server_name _;/i$ERROR_PAGE_DIRECTIVE" $NGINX_CONF
+
+# THE Redirection
+TEMP_CONF="/tmp/nginx_redirect_conf"
+
+# CREATE THE multiline config block
+cat <<- EOF > $TEMP_CONF
+	location /redirect_me {
+		return 301 $REDIRECT_URL;
+	}
+EOF
+
+# Use sed to insert the contents of the temp file
+sudo sed -i "/location \/ {/r $TEMP_CONF" $NGINX_CONF
+
+# Remove the temporary file
+rm $TEMP_CONF
+
+# Check Nginx configuration for syntax errors
+/usr/sbin/nginx -t
+
+# Reload Nginx to apply changes
+/usr/sbin/nginx -s reload
+
+# Fallback: Start Nginx if it was not running
+if ! pgrep -x "nginx" > /dev/null; then
+    /usr/sbin/nginx
 fi
-
-# Test and restart nginx
-nginx -t
-service nginx restart
 sleep 2
