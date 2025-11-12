@@ -16,7 +16,7 @@ echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
 
 # add the custom 404 page
 #create the custom 404 page
-printf "%s\n\n" "$CUSTOM_404_STRING" | sudo tee "$ERROR_PAGE_FILE" > /dev/null
+printf "%s\n\n\n" "$CUSTOM_404_STRING" | sudo tee "$ERROR_PAGE_FILE" > /dev/null
 
 # Insert the error page directive into the Nginx config
 ERROR_PAGE_DIRECTIVE="error_page 404 /404.html;"
