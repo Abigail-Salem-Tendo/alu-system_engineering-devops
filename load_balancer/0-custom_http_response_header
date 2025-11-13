@@ -32,7 +32,7 @@ CUSTOM_HEADER="add_header X-Served-By \$hostname;"
 echo "--> Configuring Nginx to add 'X-Served-By' header..."
 if ! grep -q "X-Served-By" "${CONFIG_FILE}"; then
     # Insert the custom header line after the 'server {' line
-    sudo sed -i "/server {/a\\    ${CUSTOM_HEADER}" "${CONFIG_FILE}"
+    sudo sed -i "/server {/a\\  ${CUSTOM_HEADER}" "${CONFIG_FILE}"
     echo "    Header added successfully."
 else
     echo "    Header configuration already present. Skipping insertion."
