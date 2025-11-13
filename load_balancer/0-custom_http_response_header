@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 # Configures a brand new Ubuntu machine to install Nginx and add a custom
 # HTTP response header 'X-Served-By' containing the server's hostname.
 # The Nginx variable $hostname is used to dynamically inject the server's
