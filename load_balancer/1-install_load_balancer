@@ -62,8 +62,8 @@ backend http_back
     # Load balancing algorithm: roundrobin distributes requests sequentially
     balance roundrobin
     # Check directive performs health checks on the servers
-    server web01 web-01:80 check
-    server web02 web-02:80 check
+    server web-01 web-01:80 check
+    server web-02 web-02:80 check
 EOF
 
 echo "--> Checking HAProxy configuration syntax..."
