@@ -1,88 +1,51 @@
 #!/usr/bin/env bash
-# Installs and configures HAProxy on a new Ubuntu machine (lb-01)
-# to distribute HTTP traffic to web-01 and web-02 using the roundrobin algorithm.
-#
-# Requirements:
-# - Assumes web-01 and web-02 are correctly configured and reachable on port 80.
-# - HAProxy will listen on port 80.
-#
+# install a load balancer
 
-echo "--> Updating package lists..."
-sudo apt-get update -y > /dev/null
+function instal() {
+    command -v "$1" &> /dev/null
 
-echo "--> Installing HAProxy..."
-sudo apt-get install -y haproxy > /dev/null
+    if [ $? -ne 0 ]; then
+        echo -e "   Installing: $1\n"
+	sudo apt-get update -y -qq && \
+	    sudo apt-get install -y "$1" -qq
+	echo -e "\n"
+    else
+	echo -e "   ${1} is already installed.\n"
+    fi
+}
 
-if [ $? -ne 0 ]; then
-    echo "ERROR: HAProxy installation failed. Exiting."
-    exit 1
-fi
+install haproxy #install haproxy
 
-CONFIG_FILE="/etc/haproxy/haproxy.cfg"
-BACKUP_FILE="/etc/haproxy/haproxy.cfg.bak_$(date +%Y%m%d%H%M%S)"
+echo -e "\nSetting up some minor stuff.\n"
 
-echo "--> Backing up existing HAProxy configuration to ${BACKUP_FILE}..."
-sudo cp "${CONFIG_FILE}" "${BACKUP_FILE}"
+# backup default server config file
+sudo cp /etc/haproxy/haproxy.cfg haproxy_default.backup
 
-echo "--> Writing new HAProxy configuration to ${CONFIG_FILE}..."
-
-# Use a multi-line string (Here Document) to write the complete configuration.
-# We are using the hostnames web-01 and web-02 as per the requirements.
-sudo tee "${CONFIG_FILE}" > /dev/null << EOF
-# Global configuration for HAProxy
-global
-    log /dev/log    local0
-    chroot /var/lib/haproxy
-    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
-    stats timeout 30s
-    user haproxy
-    group haproxy
-    daemon
-
-    # Default performance and security settings
-    maxconn 20000
-
-# Default settings for HTTP mode
+server_config=\
+"
 defaults
-    log global
-    mode http
-    option httplog
-    option dontlognull
-    timeout connect 5000
-    timeout client 50000
-    timeout server 50000
-
-# Frontend section: Listens for incoming HTTP traffic on port 80
-frontend http_front
+  mode http
+  timeout client 15s
+  timeout connect 10s
+  timeout server 15s
+  timeout http-request 10s
+frontend tech_frontend
     bind *:80
-    default_backend http_back
-
-# Backend section: Defines the group of web servers and the load balancing method
-backend http_back
-    # Load balancing algorithm: roundrobin distributes requests sequentially
+    default_backend tech_backend
+backend tech_backend
     balance roundrobin
-    # Check directive performs health checks on the servers
-    server web-01 web-01:80 check
-    server web-02 web-02:80 check
-EOF
+    server 6783-web-01 44.201.168.13:80 check
+    server 6783-web-02 54.166.105.112:80 check
+"
 
-echo "--> Checking HAProxy configuration syntax..."
-# Test the configuration file for errors before restarting
-sudo haproxy -c -f "${CONFIG_FILE}"
+#shellcheck
+echo "$server_config" | sudo dd status=none of=/etc/haproxy/haproxy.cfg
 
-if [ $? -ne 0 ]; then
-    echo "ERROR: HAProxy configuration check failed. Please check the file content."
-    exit 1
+#enable haproxy to be started by inin script
+echo "ENABLED=1" | sudo dd status=none of=/etc/default/haproxy
+
+if [ "$(pgrep -c haproxy)" -le 0 ]; then
+    sudo service haproxy start
+else
+    sudo service haproxy restart
 fi
-
-# Enable HAProxy service to start on boot (ensures it's manageable via init scripts)
-echo "--> Ensuring HAProxy service is enabled to start on boot..."
-sudo systemctl enable haproxy > /dev/null 2>&1
-
-echo "--> Restarting HAProxy service to apply changes..."
-sudo service haproxy restart
-
-echo "--> HAProxy configuration complete."
-echo "You can now test your load balancer's IP to see the X-Served-By header rotate between web-01 and web-02."
-
-exit 0
