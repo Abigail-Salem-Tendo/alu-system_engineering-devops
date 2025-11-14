@@ -2,7 +2,7 @@
 # Custom 404 page for Nginx
 
 # Configuration variables
-NGINX_CONF="/etc/nginx/sites-available/defualt"
+NGINX_CONF="/etc/nginx/sites-available/default"
 CUSTOM_404_PAGE="/var/www/html/404.html"
 
 #Update the package lists and install Nginx if needed
